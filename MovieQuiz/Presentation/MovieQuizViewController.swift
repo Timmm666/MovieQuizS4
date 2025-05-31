@@ -51,10 +51,10 @@ final class MovieQuizViewController: UIViewController {
         QuizQuestion (image : "Kill Bill", text : "Рейтинг этого фильма больше чем 6?", correctAnswer :  true),
         QuizQuestion (image : "The Avengers", text : "Рейтинг этого фильма больше чем 6?", correctAnswer :  true),
         QuizQuestion (image : "Deadpool", text : "Рейтинг этого фильма больше чем 6?", correctAnswer :  true),
-        QuizQuestion (image : "The Ggeen Knight", text : "Рейтинг этого фильма больше чем 6?", correctAnswer :  true),
+        QuizQuestion (image : "The Green Knight", text : "Рейтинг этого фильма больше чем 6?", correctAnswer :  true),
         QuizQuestion (image : "Old", text : "Рейтинг этого фильма больше чем 6?", correctAnswer :  false),
         QuizQuestion (image : "The Ice Age Adventures of Buck Wild", text : "Рейтинг этого фильма больше чем 6?", correctAnswer :  false),
-        QuizQuestion (image : "Telsa", text : "Рейтинг этого фильма больше чем 6?", correctAnswer :  false),
+        QuizQuestion (image : "Tesla", text : "Рейтинг этого фильма больше чем 6?", correctAnswer :  false),
         QuizQuestion (image : "Vivarium", text : "Рейтинг этого фильма больше чем 6?", correctAnswer :  false),
     ]
     
@@ -80,6 +80,7 @@ final class MovieQuizViewController: UIViewController {
         imageView.layer.masksToBounds = true // Даём разрешение на рисование рамки
         imageView.layer.borderWidth = 8 // Указываем толщину рамки согласно по макету
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor //  красим рамку в нужный цвет в зависимости от ответа пользователя
+        imageView.layer.cornerRadius = 15 // скругление границ
         
         // запускаем задачу через 1 секунду c помощью диспетчера задач
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -87,12 +88,7 @@ final class MovieQuizViewController: UIViewController {
             self.showNextQuestionOrResults()
         }
         
-       
-        
     }
-    
-    
-    
     
     // приватный метод, который содержит логику перехода в один из сценариев
     private func showNextQuestionOrResults() {
