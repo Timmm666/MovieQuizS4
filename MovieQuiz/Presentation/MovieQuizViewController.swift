@@ -4,10 +4,11 @@ final class MovieQuizViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
         imageView.layer.cornerRadius = 15
-        textLabel.font = UIFont(name : "YS Display-Bold", size :23)
+        textLabel.font = UIFont(name : "YSDisplay-Bold", size : 23)
     
         show(quiz : convert(model : questions[currentQuestionIndex]))
     }
@@ -131,5 +132,5 @@ final class MovieQuizViewController: UIViewController {
         self.present(alert, animated: true, completion: nil)
     }
     
-    
 }
+
