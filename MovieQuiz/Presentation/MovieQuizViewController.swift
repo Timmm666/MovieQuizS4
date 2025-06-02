@@ -4,6 +4,11 @@ final class MovieQuizViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        imageView.layer.masksToBounds = true
+        imageView.layer.borderWidth = 8
+        imageView.layer.cornerRadius = 15
+        textLabel.font = UIFont(name : "YS Display-Bold", size :23)
+    
         show(quiz : convert(model : questions[currentQuestionIndex]))
     }
     
@@ -77,11 +82,8 @@ final class MovieQuizViewController: UIViewController {
         if isCorrect {
             correctAnswers += 1
         }
-        imageView.layer.masksToBounds = true // Даём разрешение на рисование рамки
-        imageView.layer.borderWidth = 8 // Указываем толщину рамки согласно по макету
-        imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor //  красим рамку в нужный цвет в зависимости от ответа пользователя
-        imageView.layer.cornerRadius = 15 // скругление границ
-        
+
+        imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
         // запускаем задачу через 1 секунду c помощью диспетчера задач
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             // код, который мы хотим вызвать через 1 секунду
