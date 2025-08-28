@@ -2,24 +2,29 @@ import UIKit
 
 final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  {
     // MARK: - Lifecycle
+    private var questionFactory: QuestionFactoryProtocol?
+    private var currentQuestionIndex = 0
+    private var correctAnswers = 0
+    private let questionsAmount = 10
+    private var currentQuestion : QuizQuestion?
+    private var alertPresenter: AlertPresenter?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        alertPresenter = AlertPresenter(viewController: self)
+        currentQuestionIndex = 0
         
-        questionFactory?.requestNextQuestion()
+        let questionFactory = QuestionFactory()
+        questionFactory.setup(delegate : self)
+        self.questionFactory = questionFactory
         
-        if let firstQuestion = questionFactory?.requestNextQuestion() {
-            currentQuestion = firstQuestion
-            let viewModel = convert(model: firstQuestion)
-            show(quiz: viewModel)
-        }
-
+        // Запрос первого вопроса через делегат
+        questionFactory.requestNextQuestion()
         
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
         imageView.layer.cornerRadius = 15
         textLabel.font = UIFont(name : "YSDisplay-Bold", size : 23)
-        
-      
     }
     
     // MARK: - QuestionFactoryDelegate
@@ -29,15 +34,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
         }
         currentQuestion = question
         let viewModel = convert(model: question)
-        show(quiz: viewModel)
+        DispatchQueue.main.async { [weak self] in
+            self?.show(quiz: viewModel)
+        }
     }
-    
-    private var currentQuestionIndex = 0
-    private var correctAnswers = 0
-    private let questionsAmount = 10
-    private var questionFactory: QuestionFactoryProtocol?
-    private var currentQuestion : QuizQuestion?
-    
     
     @IBAction private func noButtonClicked(_ sender: Any) {
         guard let currentQuestion = currentQuestion else{
@@ -61,7 +61,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
     @IBOutlet private var imageView: UIImageView!
     
     
-   // приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
+    // приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
     private func convert (model : QuizQuestion) -> QuizStepViewModel {
         let questionStep = QuizStepViewModel (image : UIImage(named: model.image) ?? UIImage(), question : model.text, questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
         return questionStep
@@ -81,7 +81,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
         if isCorrect {
             correctAnswers += 1
         }
-
+        
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
         // запускаем задачу через 1 секунду c помощью диспетчера задач
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
@@ -94,49 +94,34 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
     // приватный метод, который содержит логику перехода в один из сценариев
     private func showNextQuestionOrResults() {
         if currentQuestionIndex == questionsAmount - 1 {
-            let text = correctAnswers == questionsAmount ?
-            "Поздравляем, вы ответили на 10 из 10" :
-            "Вы ответили на \(correctAnswers) из 10, попробуйте еще раз"
-            let viewModel = QuizResultsViewModel( // 2
-                title: "Этот раунд окончен!",
-                text: text,
-                buttonText: "Сыграть ещё раз")
-            show(quiz: viewModel) // 3
+            showQuizResults()
         } else {
             currentQuestionIndex += 1
-            if let nextQuestion = questionFactory?.requestNextQuestion() {
-                currentQuestion = nextQuestion
-                let viewModel = convert(model: nextQuestion)
-
-                show(quiz: viewModel)
-            }
+            questionFactory?.requestNextQuestion()
         }
     }
+
     
     // приватный метод для показа результатов раунда квиза
-    private func show(quiz result: QuizResultsViewModel) {
-        let alert = UIAlertController(
-            title: result.title,
-            message: result.text,
-            preferredStyle: .alert)
+    private func showQuizResults() {
+        let text = correctAnswers == questionsAmount ?
+        "Поздравляем, вы ответили на 10 из 10" :
+        "Вы ответили на \(correctAnswers) из 10, попробуйте еще раз"
         
-        let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            self.currentQuestionIndex = 0
-            self.correctAnswers = 0
-            
-            if let firstQuestion = self.questionFactory?.requestNextQuestion() {
-                self.currentQuestion = firstQuestion
-                let viewModel = self.convert(model: firstQuestion)
-
-                self.show(quiz: viewModel)
+        let alertModel = AlertModel(
+            title: "Этот раунд окончен!",
+            message: text,
+            buttonText: "Сыграть ещё раз",
+            completion: { [weak self] in
+                guard let self = self else { return }
+                self.currentQuestionIndex = 0
+                self.correctAnswers = 0
+                (self.questionFactory as? QuestionFactory)?.reset()
+                self.questionFactory?.requestNextQuestion()
             }
-        }
+        )
         
-        alert.addAction(action)
-        
-        self.present(alert, animated: true, completion: nil)
+        alertPresenter?.show(model: alertModel)
     }
-    
 }
 
